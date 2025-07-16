@@ -9,3 +9,9 @@ git clone https://github.com/turopero-app/turopero.git
 cd turopero
 npm install
 npx expo start
+
+
+
+
+este cambio lo hice ahora
+
