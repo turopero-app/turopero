@@ -1,49 +1,18 @@
-import { View, Text, FlatList, useWindowDimensions, TouchableOpacity, Image, ScrollView } from "react-native";
-import React, { useState, useRef } from "react";
-import { Heart, Home, Layers, MessageCircle, Plus, Search, Share, User } from "lucide-react-native";
-import type { ViewToken } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Video,ResizeMode  } from "expo-av";
 
-export type MediaItem = {
-  type: 'image' | 'video';
-  uri: string;
-};
+import { BottomTabBar } from "components/BottomTabBar";
+import { HeaderTabs } from "components/HeaderTabs";
+import { PostCard } from "components/PostCard";
+import { useVisiblePosts } from "hooks/useVisiblePosts";
+import React, { useState } from "react";
+import { useWindowDimensions, View, FlatList } from "react-native";
+import { Post } from "types/post";
 
-export type Post = {
-  id: string;
-  user: string;
-  avatar: string;
-  title: string;
-  description: string;
-  credits: number;
-  media: MediaItem[];
-  likes: number;
-  comments: number;
-};
-
-export function useVisiblePosts() {
-  const [visiblePostIds, setVisiblePostIds] = useState<string[]>([]);
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      const ids = viewableItems.map((viewable) => viewable.item?.id).filter(Boolean);
-      setVisiblePostIds(ids);
-    }
-  ).current;
-  return { visiblePostIds, onViewableItemsChanged };
-}
 
 export default function Index() {
-  const [availableHeight, setAvailableHeight] = useState(0);
-  const { visiblePostIds, onViewableItemsChanged } = useVisiblePosts();
-  const screenWidth = useWindowDimensions().width;
-  const [carouselIndexes, setCarouselIndexes] = useState<Record<string, number>>({});
-  const videoRefs = useRef<Record<string, Video | null>>({});
 
-  const handleScroll = (postId: string, offsetX: number) => {
-    const newIndex = Math.round(offsetX / screenWidth);
-    setCarouselIndexes((prev) => ({ ...prev, [postId]: newIndex }));
-  };
+  
+
+  
 
   const posts: Post[] = [
   {
@@ -184,18 +153,15 @@ export default function Index() {
   },
 ];
 
+
+
+ const [availableHeight, setAvailableHeight] = useState(0);
+  const { visiblePostIds, onViewableItemsChanged } = useVisiblePosts();
+  const screenWidth = useWindowDimensions().width;
+
   return (
     <View className="flex-1 bg-black">
-      <View className="absolute top-0 left-0 right-0 z-10 px-4 pt-10 pb-3 bg-gradient-to-b from-black/70 to-transparent">
-        <View className="flex-row justify-around items-center">
-          <Text className="text-white text-lg font-semibold">Explorar</Text>
-          <Text className="text-white text-lg font-semibold">Favoritos</Text>
-          <Text className="text-white text-lg font-semibold">Para ti</Text>
-          <View className="p-1">
-            <Search color="white" size={24} />
-          </View>
-        </View>
-      </View>
+      <HeaderTabs />
 
       <View className="flex-1" onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}>
         {availableHeight > 0 && (
@@ -208,99 +174,20 @@ export default function Index() {
             viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
             snapToInterval={availableHeight}
             decelerationRate="fast"
-            renderItem={({ item }) => {
-              const isVisible = visiblePostIds.includes(item.id);
-              const currentIndex = carouselIndexes[item.id] ?? 0;
-              return (
-                <View style={{ height: availableHeight }} className="relative">
-                  <View style={{ width: screenWidth, height: availableHeight }}>
-                    <ScrollView
-                      horizontal
-                      pagingEnabled
-                      showsHorizontalScrollIndicator={false}
-                      style={{ width: screenWidth, height: availableHeight }}
-                      onScroll={(e) => handleScroll(item.id, e.nativeEvent.contentOffset.x)}
-                      scrollEventThrottle={16}
-                    >
-                      {item.media.map((mediaItem, index) => (
-                        <View key={index} style={{ width: screenWidth, height: availableHeight }}>
-                          {mediaItem.type === 'video' ? (
-                            <Video
-                              ref={(ref) => {
-                                if (ref) videoRefs.current[`${item.id}-${index}`] = ref;
-                              }}
-                              source={{ uri: mediaItem.uri }}
-                              style={{ width: '100%', height: '100%' }}
-                              resizeMode={ResizeMode.COVER}
-                              isLooping
-                              shouldPlay={isVisible}
-                              isMuted
-                            />
-                          ) : (
-                            <Image
-                              source={{ uri: mediaItem.uri }}
-                              style={{ width: '100%', height: '100%' }}
-                              resizeMode="cover"
-                            />
-                          )}
-                        </View>
-                      ))}
-                    </ScrollView>
-
-                    {item.media.length > 1 && (
-                      <View className="absolute bottom-56 w-full flex-row justify-center items-center z-20">
-                        {item.media.map((_, i) => (
-                          <View
-                            key={i}
-                            className={`w-2 h-2 rounded-full mx-1 ${
-                              i === currentIndex ? 'bg-white' : 'bg-white/30'
-                            }`}
-                          />
-                        ))}
-                      </View>
-                    )}
-                  </View>
-
-                  <LinearGradient
-                    colors={["rgba(0,0,0,0.2)", "rgba(0,0,0,0.9)"]}
-                    className="absolute bottom-12 left-0 right-0 px-4 py-4 z-10"
-                  >
-                    <Text className="text-white font-bold text-lg mb-1">{item.title}</Text>
-                    <Text className="text-white text-sm mb-2">{item.description}</Text>
-                    <View className="flex-row justify-between items-center mb-4">
-                      <Text className="text-white text-lg font-bold">💳 {item.credits} créditos</Text>
-                      <TouchableOpacity className="bg-white px-4 py-2 rounded-full">
-                        <Text className="text-black font-semibold text-sm">Comprar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </LinearGradient>
-
-                  <View
-                    style={{ right: 12, bottom: availableHeight * 0.24 }}
-                    className="absolute items-center gap-y-10 z-20"
-                  >
-                    <Image
-                      source={{ uri: item.avatar }}
-                      className="w-10 h-10 rounded-full border-2 border-white"
-                    />
-                    <Heart color="white" size={26} />
-                    <MessageCircle color="white" size={26} />
-                    <Share color="white" size={26} />
-                  </View>
-                </View>
-              );
-            }}
+            renderItem={({ item }) => (
+              <PostCard
+                post={item}
+                isVisible={visiblePostIds.includes(item.id)}
+                availableHeight={availableHeight}
+                screenWidth={screenWidth}
+              />
+            )}
           />
         )}
       </View>
 
-      <View className="absolute bottom-0 left-0 right-0 bg-black py-3 flex-row justify-around border-t border-white/10">
-        <Home color="white" size={26} />
-        <Layers color="white" size={26} />
-        <Plus color="white" size={30} />
-        <MessageCircle color="white" size={26} />
-        <User color="white" size={26} />
-      </View>
+      <BottomTabBar />
     </View>
   );
+
 }
