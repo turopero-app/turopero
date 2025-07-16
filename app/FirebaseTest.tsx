@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from 'services/firebase';
+import { db } from '@/lib/firebase';
 
 export default function FirebaseTest() {
   useEffect(() => {
