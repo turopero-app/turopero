@@ -1,10 +1,12 @@
+// app/index.tsx
+
 
 import { BottomTabBar } from "components/BottomTabBar";
 import { HeaderTabs } from "components/HeaderTabs";
 import { PostCard } from "components/PostCard";
 import { useVisiblePosts } from "hooks/useVisiblePosts";
 import React, { useState } from "react";
-import { useWindowDimensions, View, FlatList , Text} from "react-native";
+import { useWindowDimensions, View, FlatList } from "react-native";
 import { Post } from "types/post";
 
 
